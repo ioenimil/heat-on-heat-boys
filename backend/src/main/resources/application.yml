@@ -1,0 +1,30 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: servicehub
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/servicehub}
+    username: ${DB_USER:servicehub}
+    password: ${DB_PASSWORD:servicehub_pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    org.springframework: ${SPRING_LOG_LEVEL:INFO}
+    com.servicehub: ${APP_LOG_LEVEL:DEBUG}
+
