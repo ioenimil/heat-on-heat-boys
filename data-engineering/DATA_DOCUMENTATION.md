@@ -113,24 +113,24 @@ data-engineering/
 
 **Purpose:** Core operational table containing all service tickets
 
-| Column              | Type         | Description                                      |
-| ------------------- | ------------ | ------------------------------------------------ |
-| id                  | UUID         | Primary key                                      |
-| title               | VARCHAR(255) | Request title                                    |
-| description         | TEXT         | Detailed description                             |
-| category            | VARCHAR(20)  | IT_SUPPORT \| FACILITIES \| HR_REQUEST           |
-| priority            | VARCHAR(10)  | CRITICAL \| HIGH \| MEDIUM \| LOW                |
-| status              | VARCHAR(15)  | OPEN \| ASSIGNED \| IN_PROGRESS \| RESOLVED \| CLOSED |
-| requester_id        | UUID         | FK to users.id                                   |
-| assigned_to_id      | UUID         | FK to users.id (nullable)                        |
-| department_id       | UUID         | FK to departments.id (nullable)                  |
-| created_at          | TIMESTAMPTZ  | Ticket creation timestamp (UTC)                  |
-| updated_at          | TIMESTAMPTZ  | Last update timestamp (UTC)                      |
-| resolved_at         | TIMESTAMPTZ  | Resolution timestamp (nullable)                  |
-| closed_at           | TIMESTAMPTZ  | Closure timestamp (nullable)                     |
-| first_response_at   | TIMESTAMPTZ  | First agent response timestamp (nullable)        |
-| sla_deadline        | TIMESTAMPTZ  | Calculated SLA deadline (nullable)               |
-| is_sla_breached     | BOOLEAN      | TRUE if resolved after sla_deadline              |
+| Column            | Type         | Nullable | Description                                                           |
+| ----------------- | ------------ | -------- | --------------------------------------------------------------------- |
+| id                | UUID         | NO       | Primary key                                                           |
+| title             | VARCHAR(255) | NO       | Short summary of the request                                          |
+| description       | TEXT         | YES      | Full detail provided by the requester                                 |
+| category          | VARCHAR(20)  | NO       | IT_SUPPORT \| FACILITIES \| HR_REQUEST                                |
+| priority          | VARCHAR(10)  | NO       | CRITICAL \| HIGH \| MEDIUM \| LOW                                     |
+| status            | VARCHAR(15)  | NO       | OPEN \| ASSIGNED \| IN_PROGRESS \| RESOLVED \| CLOSED                 |
+| department_id     | UUID         | YES      | FK to departments.id. Set by auto-routing on creation                |
+| assigned_to_id    | UUID         | YES      | FK to users.id. Set when status → ASSIGNED                            |
+| requester_id      | UUID         | NO       | FK to users.id. The employee who raised the ticket                    |
+| sla_deadline      | TIMESTAMPTZ  | YES      | Calculated as created_at + resolution_time_hours from sla_policies    |
+| first_response_at | TIMESTAMPTZ  | YES      | Timestamp of first status change away from OPEN                       |
+| resolved_at       | TIMESTAMPTZ  | YES      | Set when status → RESOLVED                                            |
+| closed_at         | TIMESTAMPTZ  | YES      | Set when status → CLOSED                                              |
+| is_sla_breached   | BOOLEAN      | NO       | Default FALSE; TRUE when NOW() > sla_deadline and not RESOLVED/CLOSED |
+| created_at        | TIMESTAMPTZ  | NO       | Set on INSERT                                                         |
+| updated_at        | TIMESTAMPTZ  | NO       | Set on every UPDATE                                                   |
 
 **ETL Usage:** Primary source for all analytics transformations
 
@@ -140,14 +140,15 @@ data-engineering/
 
 **Purpose:** SLA configuration for category-priority combinations
 
-| Column                  | Type        | Description                          |
-| ----------------------- | ----------- | ------------------------------------ |
-| id                      | UUID        | Primary key                          |
-| category                | VARCHAR(20) | IT_SUPPORT \| FACILITIES \| HR_REQUEST |
-| priority                | VARCHAR(10) | CRITICAL \| HIGH \| MEDIUM \| LOW    |
-| response_time_hours     | INTEGER     | Hours allowed for first response     |
-| resolution_time_hours   | INTEGER     | Hours allowed for resolution         |
-| created_at              | TIMESTAMPTZ | Policy creation timestamp            |
+| Column                | Type        | Nullable | Description                                |
+| --------------------- | ----------- | -------- | ------------------------------------------ |
+| id                    | UUID        | NO       | Primary key                                |
+| category              | VARCHAR(20) | NO       | IT_SUPPORT \| FACILITIES \| HR_REQUEST     |
+| priority              | VARCHAR(10) | NO       | CRITICAL \| HIGH \| MEDIUM \| LOW          |
+| response_time_hours   | INTEGER     | NO       | Max hours to first agent response          |
+| resolution_time_hours | INTEGER     | NO       | Max hours from creation to RESOLVED        |
+
+**Unique Constraint:** (category, priority)
 
 **ETL Usage:** 
 - Validation: Must contain exactly 12 rows (3 categories × 4 priorities)
@@ -155,20 +156,20 @@ data-engineering/
 
 **Required Rows:**
 
-```sql
-IT_SUPPORT + CRITICAL → 1h response, 4h resolution
-IT_SUPPORT + HIGH     → 2h response, 8h resolution
-IT_SUPPORT + MEDIUM   → 4h response, 24h resolution
-IT_SUPPORT + LOW      → 8h response, 48h resolution
-FACILITIES + CRITICAL → 1h response, 8h resolution
-FACILITIES + HIGH     → 2h response, 16h resolution
-FACILITIES + MEDIUM   → 4h response, 48h resolution
-FACILITIES + LOW      → 8h response, 96h resolution
-HR_REQUEST + CRITICAL → 2h response, 8h resolution
-HR_REQUEST + HIGH     → 4h response, 24h resolution
-HR_REQUEST + MEDIUM   → 8h response, 72h resolution
-HR_REQUEST + LOW      → 24h response, 168h resolution
-```
+| Category   | Priority | Response (hrs) | Resolution (hrs) |
+| ---------- | -------- | -------------- | ---------------- |
+| IT_SUPPORT | CRITICAL | 1              | 4                |
+| IT_SUPPORT | HIGH     | 2              | 8                |
+| IT_SUPPORT | MEDIUM   | 4              | 24               |
+| IT_SUPPORT | LOW      | 8              | 72               |
+| FACILITIES | CRITICAL | 1              | 8                |
+| FACILITIES | HIGH     | 2              | 16               |
+| FACILITIES | MEDIUM   | 4              | 48               |
+| FACILITIES | LOW      | 8              | 96               |
+| HR_REQUEST | CRITICAL | 2              | 8                |
+| HR_REQUEST | HIGH     | 4              | 24               |
+| HR_REQUEST | MEDIUM   | 8              | 72               |
+| HR_REQUEST | LOW      | 24             | 168              |
 
 ---
 
@@ -176,15 +177,17 @@ HR_REQUEST + LOW      → 24h response, 168h resolution
 
 **Purpose:** User accounts (employees and agents)
 
-| Column      | Type         | Description                          |
-| ----------- | ------------ | ------------------------------------ |
-| id          | UUID         | Primary key                          |
-| email       | VARCHAR(255) | Unique email                         |
-| name        | VARCHAR(255) | Full name                            |
-| role        | VARCHAR(20)  | USER \| AGENT \| MANAGER             |
-| department_id | UUID       | FK to departments.id (nullable)      |
-| is_active   | BOOLEAN      | Account status                       |
-| created_at  | TIMESTAMPTZ  | Account creation timestamp           |
+| Column      | Type         | Nullable | Description                                  |
+| ----------- | ------------ | -------- | -------------------------------------------- |
+| id          | UUID         | NO       | Primary key                                  |
+| email       | VARCHAR(255) | NO       | Unique. Used as login identifier             |
+| password    | VARCHAR(255) | NO       | BCrypt hashed — never store plaintext        |
+| full_name   | VARCHAR(255) | NO       | Display name shown in UI and tickets         |
+| role        | VARCHAR(20)  | NO       | ADMIN \| AGENT \| USER                       |
+| department  | UUID         | YES      | FK to departments.id                         |
+| is_active   | BOOLEAN      | NO       | Default TRUE; soft-delete flag               |
+| created_at  | TIMESTAMPTZ  | NO       | Set on INSERT via @PrePersist                |
+| updated_at  | TIMESTAMPTZ  | NO       | Set on INSERT and UPDATE                     |
 
 **ETL Usage:** Denormalization source for agent_name in analytics_agent_performance
 
@@ -194,14 +197,17 @@ HR_REQUEST + LOW      → 24h response, 168h resolution
 
 **Purpose:** Organizational departments
 
-| Column      | Type         | Description                |
-| ----------- | ------------ | -------------------------- |
-| id          | UUID         | Primary key                |
-| name        | VARCHAR(100) | Department name            |
-| description | TEXT         | Department description     |
-| created_at  | TIMESTAMPTZ  | Creation timestamp         |
+| Column        | Type         | Nullable | Description                                     |
+| ------------- | ------------ | -------- | ----------------------------------------------- |
+| id            | UUID         | NO       | Primary key                                     |
+| name          | VARCHAR(100) | NO       | Human-readable (e.g., 'IT Support', 'HR')       |
+| category      | VARCHAR(20)  | NO       | IT_SUPPORT \| FACILITIES \| HR_REQUEST          |
+| contact_email | VARCHAR(255) | YES      | Routing email for notifications                 |
+| is_active     | BOOLEAN      | NO       | Default TRUE                                    |
 
 **ETL Usage:** Denormalization source for department_name in analytics_department_workload
+
+**Note:** One department row per RequestCategory. Auto-routing maps category → department by this column.
 
 ---
 
@@ -271,7 +277,7 @@ All analytics tables use **REPLACE strategy** (truncate and reload on each ETL r
 | Column                  | Type         | Description                          |
 | ----------------------- | ------------ | ------------------------------------ |
 | agent_id                | UUID         | FK to users.id                       |
-| agent_name              | VARCHAR(255) | Denormalized from users.name         |
+| agent_name              | VARCHAR(255) | Denormalized from users.full_name    |
 | week_start              | DATE         | Monday of ISO week                   |
 | tickets_assigned        | INTEGER      | Tickets assigned to agent            |
 | tickets_resolved        | INTEGER      | Tickets resolved by agent            |
@@ -599,16 +605,16 @@ avg_response_hours = MEAN((first_response_at - created_at) / 3600)
 
 **Formula:**
 ```
-is_sla_breached = (resolved_at > sla_deadline) AND status IN ('RESOLVED', 'CLOSED')
+is_sla_breached = TRUE when NOW() > sla_deadline AND status NOT IN ('RESOLVED','CLOSED')
 ```
 
 **Where:**
 - `sla_deadline` = created_at + resolution_time_hours (from sla_policies)
-- Only applies to resolved/closed tickets
+- Computed by backend on ticket updates
 
 **Edge Cases:**
 - FALSE when sla_deadline is NULL
-- FALSE when ticket is not resolved
+- FALSE when ticket is RESOLVED or CLOSED
 
 ---
 
