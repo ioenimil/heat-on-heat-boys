@@ -1,4 +1,4 @@
-package com.servicehub.controller;
+package com.servicehub.controller.api;
 
 import com.servicehub.dto.HealthResponse;
 import com.servicehub.service.HealthService;
