@@ -1,5 +1,6 @@
 import pandas as pd
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 
 from utils.logger import get_logger
 
@@ -35,5 +36,13 @@ def load_dataframe(df: pd.DataFrame, table_name: str, engine: Engine) -> int:
         rows_written = len(df)
         logger.info("Loaded %d rows into %s", rows_written, table_name)
         return rows_written
+    except SQLAlchemyError as exc:
+        logger.exception(
+            "SQLAlchemy error while loading dataframe into %s", table_name
+        )
+        raise RuntimeError(f"Failed to load dataframe into {table_name}") from exc
     except Exception as exc:
+        logger.exception(
+            "Unexpected error while loading dataframe into %s", table_name
+        )
         raise RuntimeError(f"Failed to load dataframe into {table_name}") from exc

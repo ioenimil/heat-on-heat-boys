@@ -15,7 +15,9 @@ Thumbs.db
 .env
 *.env
 __pycache__/
+**/__pycache__/
 *.pyc
+.streamlit/
 .venv/
 venv/
 node_modules/

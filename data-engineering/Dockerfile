@@ -1,5 +1,6 @@
-FROM apache/airflow:2.8.1-python3.11
-
-USER airflow
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+CMD ["python", "etl_pipeline.py"]

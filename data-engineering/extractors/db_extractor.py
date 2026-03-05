@@ -1,6 +1,7 @@
 import pandas as pd
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 
 from utils.logger import get_logger
 
@@ -22,10 +23,21 @@ def extract_service_requests(engine: Engine) -> pd.DataFrame:
         ORDER BY sr.created_at DESC
         """
     )
-    with engine.connect() as connection:
-        dataframe = pd.read_sql(query, connection)
-    logger.info("Extracted service_requests rows=%d", len(dataframe))
-    return dataframe
+    try:
+        with engine.connect() as connection:
+            dataframe = pd.read_sql(query, connection)
+        logger.info("Extracted service_requests rows=%d", len(dataframe))
+        return dataframe
+    except SQLAlchemyError as exc:
+        logger.exception(
+            "extract_service_requests failed while querying service_requests table."
+        )
+        raise RuntimeError("extract_service_requests failed for service_requests") from exc
+    except Exception as exc:
+        logger.exception(
+            "extract_service_requests encountered an unexpected error while querying service_requests."
+        )
+        raise RuntimeError("extract_service_requests failed for service_requests") from exc
 
 
 def extract_sla_policies(engine: Engine) -> pd.DataFrame:
@@ -35,10 +47,21 @@ def extract_sla_policies(engine: Engine) -> pd.DataFrame:
         FROM sla_policies ORDER BY category, priority
         """
     )
-    with engine.connect() as connection:
-        dataframe = pd.read_sql(query, connection)
-    logger.info("Extracted sla_policies rows=%d", len(dataframe))
-    return dataframe
+    try:
+        with engine.connect() as connection:
+            dataframe = pd.read_sql(query, connection)
+        logger.info("Extracted sla_policies rows=%d", len(dataframe))
+        return dataframe
+    except SQLAlchemyError as exc:
+        logger.exception(
+            "extract_sla_policies failed while querying sla_policies table."
+        )
+        raise RuntimeError("extract_sla_policies failed for sla_policies") from exc
+    except Exception as exc:
+        logger.exception(
+            "extract_sla_policies encountered an unexpected error while querying sla_policies."
+        )
+        raise RuntimeError("extract_sla_policies failed for sla_policies") from exc
 
 
 def extract_users(engine: Engine) -> pd.DataFrame:
@@ -48,10 +71,19 @@ def extract_users(engine: Engine) -> pd.DataFrame:
         FROM users WHERE is_active = TRUE
         """
     )
-    with engine.connect() as connection:
-        dataframe = pd.read_sql(query, connection)
-    logger.info("Extracted active users rows=%d", len(dataframe))
-    return dataframe
+    try:
+        with engine.connect() as connection:
+            dataframe = pd.read_sql(query, connection)
+        logger.info("Extracted active users rows=%d", len(dataframe))
+        return dataframe
+    except SQLAlchemyError as exc:
+        logger.exception("extract_users failed while querying users table.")
+        raise RuntimeError("extract_users failed for users") from exc
+    except Exception as exc:
+        logger.exception(
+            "extract_users encountered an unexpected error while querying users."
+        )
+        raise RuntimeError("extract_users failed for users") from exc
 
 
 def extract_departments(engine: Engine) -> pd.DataFrame:
@@ -61,7 +93,18 @@ def extract_departments(engine: Engine) -> pd.DataFrame:
         FROM departments WHERE is_active = TRUE
         """
     )
-    with engine.connect() as connection:
-        dataframe = pd.read_sql(query, connection)
-    logger.info("Extracted active departments rows=%d", len(dataframe))
-    return dataframe
+    try:
+        with engine.connect() as connection:
+            dataframe = pd.read_sql(query, connection)
+        logger.info("Extracted active departments rows=%d", len(dataframe))
+        return dataframe
+    except SQLAlchemyError as exc:
+        logger.exception(
+            "extract_departments failed while querying departments table."
+        )
+        raise RuntimeError("extract_departments failed for departments") from exc
+    except Exception as exc:
+        logger.exception(
+            "extract_departments encountered an unexpected error while querying departments."
+        )
+        raise RuntimeError("extract_departments failed for departments") from exc

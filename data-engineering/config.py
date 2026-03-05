@@ -38,6 +38,22 @@ def load_config() -> AppConfig:
         user=os.getenv("DB_USER", "postgres"),
         password=os.getenv("DB_PASSWORD", "postgres"),
     )
-    log_level = "INFO"
+    required_values = {
+        "DB_HOST": db_config.host,
+        "DB_NAME": db_config.name,
+        "DB_USER": db_config.user,
+        "DB_PASSWORD": db_config.password,
+    }
+    missing_values = [
+        key for key, value in required_values.items() if value is None or str(value).strip() == ""
+    ]
+    if missing_values:
+        missing_list = ", ".join(missing_values)
+        raise ValueError(
+            f"Missing required environment variable(s): {missing_list}. "
+            "Check airflow.env or the shell environment."
+        )
+
+    log_level = os.getenv("LOG_LEVEL", "INFO")
 
     return AppConfig(db=db_config, log_level=log_level)

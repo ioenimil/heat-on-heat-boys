@@ -1,7 +1,7 @@
 x-airflow-common: &airflow-common
   build:
     context: ./data-engineering
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.airflow
   env_file:
     - .env
   volumes:
@@ -10,6 +10,7 @@ x-airflow-common: &airflow-common
     - ./logs:/opt/airflow/logs
   environment:
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AIRFLOW_DB}
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${AIRFLOW_DB}
     AIRFLOW__CORE__FERNET_KEY: ""
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
@@ -92,6 +93,29 @@ services:
         condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
+
+  streamlit:
+    build:
+      context: ./data-engineering
+      dockerfile: Dockerfile
+    container_name: servicehub-dashboard 
+    command: >
+      streamlit run dashboard/app.py
+        --server.port=8501
+        --server.address=0.0.0.0
+        --server.headless=true
+    ports:
+      - "8501:8501"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   pgdata:

@@ -91,7 +91,6 @@ def validate_service_requests(
     requests_df: pd.DataFrame,
     sla_df: pd.DataFrame,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    del sla_df  # reserved for cross-table checks
     logger.info("Validating service requests (%d rows)", len(requests_df))
 
     required_cols = {
@@ -298,4 +297,3 @@ def log_quarantine_summary(quarantine_df: pd.DataFrame) -> None:
         logger.warning("  %-45s %d rows", row["quarantine_reason"], row["count"])
     logger.warning("  %-45s %d rows total", "TOTAL QUARANTINED", len(quarantine_df))
     logger.warning("==========================")
-

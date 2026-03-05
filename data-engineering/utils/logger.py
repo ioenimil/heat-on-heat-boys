@@ -20,22 +20,5 @@ def get_logger(name: str) -> logging.Logger:
         )
         logger.addHandler(handler)
 
-    # Add file handler for logging to logs folder
-    has_file_handler = any(
-        isinstance(handler, logging.FileHandler) for handler in logger.handlers
-    )
-    if not has_file_handler:
-        import os
-
-        os.makedirs("logs", exist_ok=True)
-        file_handler = logging.FileHandler("logs/pipeline.log")
-        file_handler.setFormatter(
-            logging.Formatter(
-                "%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-        )
-        logger.addHandler(file_handler)
-
     logger.propagate = False
     return logger

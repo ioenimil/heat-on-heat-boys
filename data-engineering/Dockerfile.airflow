@@ -1,0 +1,7 @@
+FROM apache/airflow:2.8.1-python3.11
+
+USER airflow
+COPY requirements.txt /tmp/requirements.txt
+RUN grep -Evi "^(sqlalchemy|streamlit|plotly)==" /tmp/requirements.txt > /tmp/requirements-airflow.txt \
+    && pip install --no-cache-dir -r /tmp/requirements-airflow.txt \
+    && pip install --no-cache-dir "SQLAlchemy<2.0"
