@@ -12,26 +12,23 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Public API endpoints
-                        .requestMatchers("/api/health/**").permitAll()
-                        // Public pages
-                        .requestMatchers("/").permitAll()
-                        // Vite-built assets (JS, CSS, source maps)
-                        .requestMatchers("/assets/**").permitAll()
-                        // Loose static files at the root (fallback for any directly referenced files)
-                        .requestMatchers("/*.js", "/*.css", "/*.map").permitAll()
-                        // Icons and images
-                        .requestMatchers("/favicon.ico", "/*.png", "/*.jpg", "/*.jpeg", "/*.gif", "/*.svg", "/*.webp").permitAll()
-                        // Fonts
-                        .requestMatchers("/*.woff", "/*.woff2", "/*.ttf", "/*.eot").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/dashboard", true)
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .logoutSuccessUrl("/login")
+                        .permitAll()
                 );
 
         return http.build();
     }
 }
-
