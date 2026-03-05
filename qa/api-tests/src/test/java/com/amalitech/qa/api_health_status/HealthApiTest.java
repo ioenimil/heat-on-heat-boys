@@ -25,6 +25,17 @@ public class HealthApiTest {
                 .then()
                 .statusCode(200);
     }
+// Testing to confirm if health endpoint returns UP as status message when status code is 200
+    @Test
+    public void testHealthEndpointReturnsStatusUP() {
+        given()
+                .contentType(ContentType.JSON)
+                .when()
+                .get("/api/health")
+                .then()
+                .statusCode(200)
+                .body("status", equalTo("UP"));
+    }
 
     //    Testing to confirm if the health endpoint returns OK as the response message when status code is 200
     @Test
