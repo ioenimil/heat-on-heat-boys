@@ -1,5 +1,6 @@
 package com.amalitech.qa.api_health_status;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.testng.annotations.BeforeClass;
@@ -12,7 +13,8 @@ public class HealthApiTest {
 
     @BeforeClass
     public void setup() {
-        RestAssured.baseURI = "http://localhost:8080";
+        Dotenv dotenv = Dotenv.configure().directory("../../").load();
+        RestAssured.baseURI = dotenv.get("BASE_URL");
     }
 
 //    Testing to confirm if the health endpoint returns 200 status code

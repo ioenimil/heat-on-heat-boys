@@ -1,5 +1,6 @@
 package com.amalitech.qa;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.testng.annotations.*;
@@ -11,7 +12,8 @@ public class ServiceRequestApiTest {
 
     @BeforeClass
     public void setup() {
-        RestAssured.baseURI = "http://localhost:8080";
+        Dotenv dotenv = Dotenv.configure().directory("../../").load();
+        RestAssured.baseURI = dotenv.get("BASE_URL");
         authToken = given()
             .contentType(ContentType.JSON)
             .body("{\"email\":\"admin@amalitech.com\",\"password\":\"password123\"}")
