@@ -64,7 +64,8 @@ services:
 
   airflow-init:
     <<: *airflow-common
-    command: bash -c "airflow db migrate && airflow users create --username admin --password admin123 --firstname Admin --lastname User --role Admin --email admin@servicehub.com || true"
+    user: "0:0"
+    command: bash -c "mkdir -p /opt/airflow/logs && chown -R 50000:0 /opt/airflow/logs && chmod -R g+rwX /opt/airflow/logs && airflow db migrate && airflow users create --username admin --password admin123 --firstname Admin --lastname User --role Admin --email admin@servicehub.com || true"
     restart: "no"
 
   airflow-webserver:
