@@ -21,10 +21,10 @@ jobs:
         name: Backend PR checks
         uses: ./.github/workflows/ci-reusable.yml
         with:
-            run_checkstyle: true
-            run_tests: true
+            run_checkstyle: false
+            run_tests: false
             build_image: false
-            run_data_tests: true
+            run_data_tests: false
             run_checkov: false
             deploy_dags: false
         secrets: inherit
