@@ -23,6 +23,9 @@ spring:
     init:
       mode: always
 
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
 logging:
   level:
     org.springframework: ${SPRING_LOG_LEVEL:INFO}
