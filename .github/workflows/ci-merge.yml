@@ -17,8 +17,8 @@ jobs:
         name: Backend merge checks + image build
         uses: ./.github/workflows/ci-reusable.yml
         with:
-            run_checkstyle: false
-            run_tests: false
+            run_checkstyle: true
+            run_tests: true
             build_image: false
             push_image: false
             run_data_tests: false
