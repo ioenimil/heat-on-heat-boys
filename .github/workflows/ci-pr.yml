@@ -5,6 +5,7 @@ on:
         branches: [main]
         paths:
             - backend/**
+            - data-engineering/**
             - .github/workflows/**
 
 concurrency:
@@ -13,13 +14,17 @@ concurrency:
 
 permissions:
     contents: read
+    id-token: write # Required for GitHub Actions OIDC authentication
 
 jobs:
     ci:
         name: Backend PR checks
         uses: ./.github/workflows/ci-reusable.yml
         with:
-            run_checkstyle: true
-            run_tests: true
+            run_checkstyle: false
+            run_tests: false
             build_image: false
+            run_data_tests: false
+            run_checkov: false
+            deploy_dags: false
         secrets: inherit

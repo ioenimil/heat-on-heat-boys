@@ -5,10 +5,12 @@ on:
         branches: [main]
         paths:
             - backend/**
+            - data-engineering/**
             - .github/workflows/**
 
 permissions:
     contents: read
+    id-token: write # Required for GitHub Actions OIDC authentication
 
 jobs:
     ci:
@@ -17,19 +19,9 @@ jobs:
         with:
             run_checkstyle: true
             run_tests: true
-            build_image: true
+            build_image: false
+            push_image: false
+            run_data_tests: false
+            run_checkov: false
+            deploy_dags: false
         secrets: inherit
-
-    trigger-cd:
-        name: Trigger CD pipeline
-        runs-on: ubuntu-latest
-        needs: ci
-        steps:
-            - name: Dispatch deploy event
-              uses: peter-evans/repository-dispatch@v3
-              with:
-                  token: ${{ secrets.CD_REPO_PAT }}
-                  repository: ioenimil/servicehub-manifests
-                  event-type: deploy
-                  client-payload: |
-                      {"image_tag":"${{ needs.ci.outputs.image_tag }}","commit_sha":"${{ github.sha }}"}

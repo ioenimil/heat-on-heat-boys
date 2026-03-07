@@ -12,17 +12,26 @@ resource "aws_security_group" "app_runner_connector" {
   }
 }
 
-# MWAA SG
-resource "aws_security_group" "mwaa" {
-  name        = "mwaa-sg"
-  description = "Security group for MWAA"
+# Airflow EC2 SG
+resource "aws_security_group" "airflow_ec2" {
+  name        = "airflow-ec2-sg"
+  description = "Security group for Airflow EC2 instance"
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
+    description = "SSH access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Can be restricted to specific IPs later
+  }
+
+  ingress {
+    description = "Airflow Web UI access"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Can be restricted to specific IPs later
   }
 
   egress {
@@ -43,6 +52,6 @@ resource "aws_security_group" "rds" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.app_runner_connector.id, aws_security_group.mwaa.id]
+    security_groups = [aws_security_group.app_runner_connector.id, aws_security_group.airflow_ec2.id]
   }
 }
