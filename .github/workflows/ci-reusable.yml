@@ -91,7 +91,7 @@ jobs:
             - name: Set up Python
               uses: actions/setup-python@v5
               with:
-                  python-version: '3.10'
+                  python-version: "3.10"
 
             - name: Install dependencies
               working-directory: data-engineering
@@ -173,6 +173,7 @@ jobs:
                   file: backend/Dockerfile
                   tags: servicehub:${{ steps.meta.outputs.image_tag }}
                   push: false
+                  load: true
                   cache-from: type=local,src=/tmp/.buildx-cache
                   cache-to: type=local,dest=/tmp/.buildx-cache-new
 
@@ -244,7 +245,7 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v4
-              
+
             - name: Generate .env file
               working-directory: data-engineering
               run: |
@@ -253,13 +254,13 @@ jobs:
                   echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
                   echo "DB_USER=${{ secrets.DB_USER }}" >> .env
                   echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-              
+
             - name: Copy DAGs via SCP
               uses: appleboy/scp-action@v0.1.7
               with:
-                host: ${{ secrets.EC2_HOST }}
-                username: ${{ secrets.EC2_USER }}
-                key: ${{ secrets.EC2_SSH_KEY }}
-                source: "data-engineering/dags/*,data-engineering/config.py,data-engineering/etl_pipeline.py,data-engineering/.env"
-                target: "/opt/airflow/dags/"
-                strip_components: 1
+                  host: ${{ secrets.EC2_HOST }}
+                  username: ${{ secrets.EC2_USER }}
+                  key: ${{ secrets.EC2_SSH_KEY }}
+                  source: "data-engineering/dags/*,data-engineering/config.py,data-engineering/etl_pipeline.py,data-engineering/.env"
+                  target: "/opt/airflow/dags/"
+                  strip_components: 1
