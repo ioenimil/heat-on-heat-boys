@@ -32,3 +32,14 @@ module "airflow_instance" {
   instance_type   = "t3.medium"
 }
 
+module "ecr" {
+  source          = "./modules/ecr"
+  repository_name = "servicehub"
+}
+
+module "ci_cd" {
+  source             = "./modules/ci-cd"
+  github_repo        = var.github_repo
+  ecr_repository_arn = module.ecr.repository_arn
+}
+

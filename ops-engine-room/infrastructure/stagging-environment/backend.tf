@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket         = "servicehub-terraform-state-staging"
-    key            = "staging/terraform.tfstate"
-    region         = "eu-west-1"
-    encrypt        = true
+    bucket       = "servicehub-terraform-state-staging"
+    key          = "staging/terraform.tfstate"
+    region       = "eu-west-1"
+    encrypt      = true
     use_lockfile = true
   }
 }

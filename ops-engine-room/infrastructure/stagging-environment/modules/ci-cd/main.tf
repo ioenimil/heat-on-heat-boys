@@ -1,4 +1,3 @@
-# Fetch existing OIDC provider for GitHub Actions
 data "aws_iam_openid_connect_provider" "github_actions" {
   url = "https://token.actions.githubusercontent.com"
 }
@@ -61,7 +60,8 @@ resource "aws_iam_policy" "ecr_push_policy" {
           "ecr:CompleteLayerUpload",
           "ecr:PutImage"
         ]
-        Resource = var.ecr_repository_arn
+        
+        Resource = "*"
       }
     ]
   })

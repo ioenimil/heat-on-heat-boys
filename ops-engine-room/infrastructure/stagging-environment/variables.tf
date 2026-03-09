@@ -9,3 +9,8 @@ variable "vpc_cidr" {
   type        = string
   default     = "10.0.0.0/16"
 }
+
+variable "github_repo" {
+  description = "Github repository for the project"
+  type = string
+}
