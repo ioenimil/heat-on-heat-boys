@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/V1__initial_migration.sql
+  - include:
+      file: db/changelog/V2__add_auth_passwords.sql

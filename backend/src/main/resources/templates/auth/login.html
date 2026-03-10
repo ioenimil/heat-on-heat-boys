@@ -42,6 +42,11 @@
                 Invalid email or password. Please try again.
             </div>
 
+            <div th:if="${param.denied}"
+                 class="flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-lg px-4 py-3 mb-5">
+                Access denied for that page.
+            </div>
+
             <!-- Logout success alert -->
             <div th:if="${param.logout}"
                  class="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3 mb-5">
@@ -100,4 +105,3 @@
 </body>
 
 </html>
-

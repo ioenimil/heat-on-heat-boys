@@ -10,6 +10,7 @@ import com.servicehub.service.UserService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,6 +21,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -32,6 +34,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setEmail(normalizedEmail);
         user.setName(request.getName().trim());
+        user.setPasswordHash(resolvePasswordHashOnCreate(request.getPassword()));
         user.setRole(request.getRole());
         user.setDepartment(resolveDepartment(request.getDepartmentId()));
         user.setIsActive(request.getIsActive() == null ? Boolean.TRUE : request.getIsActive());
@@ -50,6 +53,9 @@ public class UserServiceImpl implements UserService {
 
         user.setEmail(normalizedEmail);
         user.setName(request.getName().trim());
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
         user.setRole(request.getRole());
         user.setDepartment(resolveDepartment(request.getDepartmentId()));
         user.setIsActive(request.getIsActive() == null ? Boolean.TRUE : request.getIsActive());
@@ -75,6 +81,13 @@ public class UserServiceImpl implements UserService {
         }
         return departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Department not found"));
+    }
+
+    private String resolvePasswordHashOnCreate(String rawPassword) {
+        if (rawPassword == null || rawPassword.isBlank()) {
+            return "{noop}password123";
+        }
+        return passwordEncoder.encode(rawPassword);
     }
 
     private UserResponse toResponse(User user) {

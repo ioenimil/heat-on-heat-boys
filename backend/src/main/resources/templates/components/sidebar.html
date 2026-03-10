@@ -55,7 +55,7 @@
                             </li>
                             <li>
                                 <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-sidebar-nav-foreground rounded-lg hover:bg-sidebar-nav-hover focus:outline-hidden focus:bg-sidebar-nav-focus"
-                                    th:href="@{/requests}">
+                                    th:href="@{/admin/requests}">
                                     <svg class="size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
                                         <path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>
@@ -230,8 +230,9 @@
 
                 <!-- Footer / Sign out -->
                 <div class="p-4 border-t border-sidebar-line mt-auto">
-                    <a class="flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-sidebar-nav-foreground rounded-lg hover:bg-sidebar-nav-hover focus:outline-hidden focus:bg-sidebar-nav-focus"
-                       th:href="@{/api/auth/logout}">
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit"
+                            class="w-full flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-sidebar-nav-foreground rounded-lg hover:bg-sidebar-nav-hover focus:outline-hidden focus:bg-sidebar-nav-focus">
                         <svg class="size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round">
@@ -240,7 +241,8 @@
                             <line x1="21" x2="9" y1="12" y2="12"/>
                         </svg>
                         Sign out
-                    </a>
+                        </button>
+                    </form>
                 </div>
                 <!-- End Footer -->
             </div>
@@ -250,4 +252,3 @@
 </body>
 
 </html>
-
